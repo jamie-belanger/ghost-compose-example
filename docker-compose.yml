@@ -1,0 +1,138 @@
+version: '3'
+
+networks:
+  ghost_platform:
+    driver: bridge
+  socket_proxy:
+    driver: bridge
+
+services:
+  # Security-enhanced proxy for the Docker Socket
+  socket_proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: socket_proxy
+    restart: unless-stopped
+    ports:
+      - 2375:2375
+    environment:
+      NETWORKS: 1
+      SERVICES: 1
+      CONTAINERS: 1
+      TASKS: 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    network_mode: host
+
+
+  # Reverse proxy
+  traefik:
+    image: traefik:v3
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      # For testing only...
+      #- --api.insecure=true
+      # Default Docker integration
+      - --providers.docker=true
+      # Listen on port 80 & 443
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Use the secure docker socket proxy
+      - --providers.docker.endpoint=tcp://socket_proxy:2375
+      # Load file config, for old website redirects:
+      - --providers.file.filename=/etc/traefik/traefik-sites.yml
+    environment:
+      - CF_API_EMAIL=${CLOUDFLARE_API_EMAIL}
+      - CF_API_KEY=${CLOUDFLARE_API_KEY}
+    ports:
+      - 80:80
+      - 443:443
+      # Leave this only if you want to expose it to the world, which I don't recommend
+      # but while testing the Traefik dashboard can be useful
+      - 8080:8080
+    volumes:
+      # Local files, for config
+      - ./traefik/traefik-config.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/traefik-sites.yml:/etc/traefik/traefik-sites.yml:ro
+      # SSL cert storage
+      - ./traefik/certs:/acme
+      # And an external place to write logs
+      - ./traefik/logs:/logs
+    network_mode: host
+    networks:
+      - ghost_platform
+      - socket_proxy
+    depends_on:
+      - socket_proxy
+
+
+  # CrowdSec security engine
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    ports:
+      - 8085:8080
+    environment:
+      - GID="${GID:-1000}"
+      - TZ=${TIME_ZONE}
+      - COLLECTIONS="crowdsecurity/linux crowdsecurity/traefik"
+      - BOUNCER_KEY_TRAEFIK=${BOUNCER_KEY_TRAEFIK}
+    depends_on:
+      - traefik
+    volumes:
+      - ./crowdsec/database:/var/lib/crowdsec/data/
+      - ./crowdsec/config:/etc/crowdsec
+      # But we want to overwrite whatever is in there with our custom acquisition rules:
+      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+      # Finally we need read access to Traefik's logs
+      - ./traefik/logs:/var/log/traefik/:ro
+    networks:
+      - ghost_platform
+
+
+  mysql:
+    image: mysql:9
+    container_name: mysql
+    volumes:
+       - ./mysql:/var/lib/mysql:z  # Persist storage
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+    networks:
+      - ghost_platform
+    restart: always
+
+
+  ghost:
+    image: ghost:5
+    container_name: ghost
+    restart: unless-stopped
+
+    environment:
+      url: https://${BLOG_URL}
+      database__client: mysql
+      database__connection__host: ${DB_HOST}
+      database__connection__user: ${DB_USER}
+      database__connection__password: ${DB_PASS}
+      database__connection__database: ${DB_NAME}
+    volumes:
+      - ./ghost/content:/var/lib/ghost/content
+      - ./ghost/config.json:/var/lib/ghost/config.production.json
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=ghost_platform
+      - traefik.http.routers.ghost.entrypoints=websecure
+      - traefik.http.routers.ghost.rule=Host(`${BLOG_URL}`)
+      - traefik.http.routers.ghost.middlewares=default-security-headers@file
+      - traefik.http.routers.ghost.service=ghost@docker
+      - traefik.http.services.ghost.loadbalancer.server.port=2368
+    networks:
+      - ghost_platform
+    depends_on:
+      - mysql
+      - traefik
