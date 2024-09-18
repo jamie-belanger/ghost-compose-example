@@ -1,0 +1,5 @@
+# Don't check in personal credentials
+.env
+
+# Ignore other personal data
+# TODO
