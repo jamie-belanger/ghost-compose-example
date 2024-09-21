@@ -20,31 +20,9 @@ Generally speaking, I prefer to pin major versions in my compose files so there 
 
 You can either replace all image versions with `latest` tags, or keep an eye on the above links for updates and manually apply them by updating the compose file.
 
-> **NOTE:** the Crowdsec Traefik bouncer plugin version is set inside the Trafik config. I usually just update that manually as needed.
-
 
 # Installation
-Clone this repo, make a copy of the `.env-default` file named `.env` and define all the provided variables. Or comment out what you don't want to use.
-
-## Cloudflare Config
-
-TODO: fill this out
-
-## Crowdsec Config
-
-TODO: fill this out
-
-## Running Ghost For the First Time
-
-TODO: fill this out
-
-
-
-# TODO
- - [ ] See above TODO notes
- - [ ] Where and how do you load the CAPI key?
- - [ ] cron job for updating Crowdsec
-
+See the docs folder.
 
 
 # Updating

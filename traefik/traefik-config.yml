@@ -39,7 +39,6 @@ entryPoints:
       middlewares:
         - my-crowdsec-bouncer-traefik-plugin@file
       tls:
-        # options: foobar
         certResolver: cloudflare
         domains:
           - main: ${BLOG_DOMAIN}
