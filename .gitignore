@@ -1,10 +1,4 @@
 # Don't check in personal credentials
 .env
 
-# Also don't check in content generated inside the container volume directories
-crowdsec/config/**
-crowdsec/database/**
-ghost/content/**
-mysql/**
-traefik/certs/**
-traefik/logs/**
+
