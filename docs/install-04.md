@@ -6,7 +6,7 @@ MySQL is required, but I believe that Ghost does support other database engines.
 This part is super easy because all the config is self-contained. There are only a few variables to define in the environment file:
 ```ini
 # Part 4: MySQL
-DB_HOST=mysql
+DB_HOST=host.docker.internal
 DB_NAME=ghost
 DB_USER=ghostusr
 ## Passwords

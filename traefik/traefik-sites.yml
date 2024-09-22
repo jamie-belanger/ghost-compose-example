@@ -7,8 +7,8 @@ http:
           Enabled: "true"
           crowdsecMode: stream
 
-          CrowdsecLapiHost: "crowdsec:8085"
-          CrowdsecLapiKey: ${BOUNCER_KEY_TRAEFIK}
+          CrowdsecLapiHost: "host.docker.internal:8085"
+          CrowdsecLapiKey: '{{ env "BOUNCER_KEY_TRAEFIK" }}'
 
           # Cloudflare IPs that we trust to forward the actual end-user's IP info
           ForwardedHeadersTrustedIPs:

@@ -21,7 +21,8 @@ services:
       TASKS: 1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    network_mode: host
+    networks:
+      - socket_proxy
 
 
   # Reverse proxy
@@ -29,27 +30,21 @@ services:
     image: traefik:v3
     container_name: traefik
     restart: unless-stopped
-    command:
-      # For testing only...
-      #- --api.insecure=true
-      # Default Docker integration
-      - --providers.docker=true
-      # Listen on port 80 & 443
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      # Use the secure docker socket proxy
-      - --providers.docker.endpoint=tcp://socket_proxy:2375
-      # Load file config, for old website redirects:
-      - --providers.file.filename=/etc/traefik/traefik-sites.yml
     environment:
       - CF_API_EMAIL=${CLOUDFLARE_API_EMAIL}
       - CF_API_KEY=${CLOUDFLARE_API_KEY}
+      - BOUNCER_KEY_TRAEFIK=${BOUNCER_KEY_TRAEFIK}
+      # So, for some reason, you can use env vars inside the dynamic config file
+      # traefik-sites.yml, but you can't use them in the standard config. /shrug
+      - TRAEFIK_ENTRYPOINTS_WEBSECURE_HTTP_TLS_DOMAINS_0_MAIN=${BLOG_DOMAIN}
+      - TRAEFIK_ENTRYPOINTS_WEBSECURE_HTTP_TLS_DOMAINS_0_SANS="*.${BLOG_DOMAIN}"
+      - TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL=${ACME_EMAIL}
     ports:
       - 80:80
       - 443:443
-      # Leave this only if you want to expose it to the world, which I don't recommend
-      # but while testing the Traefik dashboard can be useful
-      - 8080:8080
+      # Uncomment this if you want to expose it to the world, which I don't recommend.
+      # But while testing, the Traefik dashboard can be useful
+      # - 8080:8080
     volumes:
       # Local files, for config
       - ./traefik/traefik-config.yml:/etc/traefik/traefik.yml:ro
@@ -58,12 +53,16 @@ services:
       - ./traefik/certs:/acme
       # And an external place to write logs
       - ./traefik/logs:/logs
-    network_mode: host
     networks:
       - ghost_platform
       - socket_proxy
     depends_on:
       - socket_proxy
+      - crowdsec
+
+    # This allows us to reference other containers by name on a Linux host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 
   # CrowdSec security engine
@@ -74,12 +73,12 @@ services:
     ports:
       - 8085:8080
     environment:
-      - GID="${GID:-1000}"
-      - TZ=${TIME_ZONE}
-      - COLLECTIONS="crowdsecurity/linux crowdsecurity/traefik"
-      - BOUNCER_KEY_TRAEFIK=${BOUNCER_KEY_TRAEFIK}
-    depends_on:
-      - traefik
+      GID: "${GID:-1000}"
+      TZ: ${TIME_ZONE}
+      ENROLL_KEY: ${CROWDSEC_CAPI_KEY}
+      ENROLL_INSTANCE_NAME: ${CROWDSEC_CAPI_NAME}
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik"
+      BOUNCER_KEY_TRAEFIK: ${BOUNCER_KEY_TRAEFIK}
     volumes:
       - ./crowdsec/database:/var/lib/crowdsec/data/
       - ./crowdsec/config:/etc/crowdsec
@@ -88,7 +87,11 @@ services:
       # Finally we need read access to Traefik's logs
       - ./traefik/logs:/var/log/traefik/:ro
     networks:
-      - ghost_platform
+      - socket_proxy
+
+    # This allows us to reference other containers by name on a Linux host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 
   mysql:
@@ -128,7 +131,6 @@ services:
       - traefik.docker.network=ghost_platform
       - traefik.http.routers.ghost.entrypoints=websecure
       - traefik.http.routers.ghost.rule=Host(`${BLOG_URL}`)
-      - traefik.http.routers.ghost.middlewares=default-security-headers@file
       - traefik.http.routers.ghost.service=ghost@docker
       - traefik.http.services.ghost.loadbalancer.server.port=2368
     networks:
@@ -136,3 +138,7 @@ services:
     depends_on:
       - mysql
       - traefik
+
+    # This allows us to reference other containers by name on a Linux host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

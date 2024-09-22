@@ -1,8 +1,11 @@
 # Static configuration for Traefik
-api:
-  dashboard: true
-  debug: true
-  insecure: true
+
+# API should be disabled in production, but I'm leaving this here in case you need to test
+
+# api:
+#   dashboard: true
+#   debug: true
+#   insecure: true
 
 entryPoints:
   web:
@@ -40,17 +43,13 @@ entryPoints:
         - my-crowdsec-bouncer-traefik-plugin@file
       tls:
         certResolver: cloudflare
-        domains:
-          - main: ${BLOG_DOMAIN}
-            sans:
-              - "*.${BLOG_DOMAIN}"
 
 providers:
   docker:
-    endpoint: "tcp://socket-proxy:2375"
+    endpoint: "tcp://host.docker.internal:2375"
     exposedByDefault: false
   file:
-    filename: "traefik-sites.yml"
+    filename: "/etc/traefik/traefik-sites.yml"
     watch: true
   providersThrottleDuration: 10
 
@@ -65,12 +64,11 @@ experimental:
   plugins:
     crowdsec-bouncer-traefik-plugin:
       moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
-      version: ${BOUNCER_VERSION}
+      version: 'v1.3.3'
 
 certificatesResolvers:
   cloudflare:
     acme:
-      email: ${ACME_EMAIL}
       storage: /acme/acme.json
       # comment this out once it works... and delete any certs you got
       # caserver: https://acme-staging-v02.api.letsencrypt.org/directory
