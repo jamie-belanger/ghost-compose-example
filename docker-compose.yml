@@ -1,9 +1,9 @@
-version: '3'
-
 networks:
   ghost_platform:
+    name: ghost_platform
     driver: bridge
   socket_proxy:
+    name: socket_proxy
     driver: bridge
 
 services:
@@ -53,6 +53,9 @@ services:
       - ./traefik/certs:/acme
       # And an external place to write logs
       - ./traefik/logs:/logs
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.middlewares=my-crowdsec-bouncer-traefik-plugin@file"
     networks:
       - ghost_platform
       - socket_proxy
@@ -70,8 +73,6 @@ services:
     image: crowdsecurity/crowdsec:latest
     container_name: crowdsec
     restart: unless-stopped
-    ports:
-      - 8085:8080
     environment:
       GID: "${GID:-1000}"
       TZ: ${TIME_ZONE}
@@ -79,6 +80,7 @@ services:
       ENROLL_INSTANCE_NAME: ${CROWDSEC_CAPI_NAME}
       COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik"
       BOUNCER_KEY_TRAEFIK: ${BOUNCER_KEY_TRAEFIK}
+      CUSTOM_HOSTNAME: crowdsec
     volumes:
       - ./crowdsec/database:/var/lib/crowdsec/data/
       - ./crowdsec/config:/etc/crowdsec
@@ -86,8 +88,10 @@ services:
       - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
       # Finally we need read access to Traefik's logs
       - ./traefik/logs:/var/log/traefik/:ro
+    labels:
+      - "traefik.enable=false"
     networks:
-      - socket_proxy
+      - ghost_platform
 
     # This allows us to reference other containers by name on a Linux host
     extra_hosts:

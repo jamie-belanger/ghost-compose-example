@@ -5,10 +5,13 @@ http:
       plugin:
         crowdsec-bouncer-traefik-plugin:
           Enabled: "true"
-          crowdsecMode: stream
+          # Debug logging can be useful if something isn't working
+          # logLevel: DEBUG
+          CrowdsecMode: stream
 
-          CrowdsecLapiHost: "host.docker.internal:8085"
+          CrowdsecLapiHost: "crowdsec:8080"
           CrowdsecLapiKey: '{{ env "BOUNCER_KEY_TRAEFIK" }}'
+          crowdsecLapiScheme: http
 
           # Cloudflare IPs that we trust to forward the actual end-user's IP info
           ForwardedHeadersTrustedIPs:

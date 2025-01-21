@@ -11,8 +11,6 @@ entryPoints:
   web:
     address: ":80"
     http:
-      middlewares:
-        - my-crowdsec-bouncer-traefik-plugin@file
       redirections:
         entryPoint:
           to: websecure
@@ -39,14 +37,12 @@ entryPoints:
         - 172.64.0.0/13
         - 131.0.72.0/22
     http:
-      middlewares:
-        - my-crowdsec-bouncer-traefik-plugin@file
       tls:
         certResolver: cloudflare
 
 providers:
   docker:
-    endpoint: "tcp://host.docker.internal:2375"
+    endpoint: "tcp://socket_proxy:2375"
     exposedByDefault: false
   file:
     filename: "/etc/traefik/traefik-sites.yml"
@@ -55,6 +51,8 @@ providers:
 
 log:
   filePath: /logs/traefik.log
+  # Debug logging can be useful if something isn't working
+  # level: DEBUG
 
 accessLog:
   filePath: /logs/access.log
@@ -64,7 +62,9 @@ experimental:
   plugins:
     crowdsec-bouncer-traefik-plugin:
       moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
-      version: 'v1.3.3'
+      # Bouncer version... does it have to be hard-coded?
+      #version: "v1.3.5"
+      version: '{{ env "BOUNCER_VERSION" }}'
 
 certificatesResolvers:
   cloudflare:
