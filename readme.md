@@ -26,7 +26,7 @@ See the docs folder.
 
 
 # Updating
-Generally speaking, you'll want to compose down, change any version numbers you want, pull latest, and then compose up.
+To update this stack, you'll want to compose down, change any version numbers, pull latest, and then compose up.
 
 ```bash
 # change version numbers in config files, update env file, etc
