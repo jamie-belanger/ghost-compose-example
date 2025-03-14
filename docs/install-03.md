@@ -36,7 +36,7 @@ Look at the Crowdsec section of the environment file:
 ```ini
 ## Traefik plugin version (so you don't have to manually edit traefik-config.yml)
 ## Check https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
-# BOUNCER_VERSION="v1.3.3"
+# BOUNCER_VERSION="v1.4.1"
 
 ## Bouncer key for Traefik's local API
 ## Generate something like a GUID for this. It's used internally by Traefik
@@ -46,15 +46,21 @@ BOUNCER_KEY_TRAEFIK=(generate)
 
 You can type anything here, but it will be more secure if you generate a GUID. In Linux or Mac, use:
 ```bash
-uuidgen
+uuidgen | tr -d "-"
 ```
 and on Windows / Powershell, you can use
 ```powershell
 New-Guid
 ```
+and remove the hyphens. It's been a while since I've used Powershell (or Windows for that matter) but you can likely run something like this if you like one-liners:
+```powershell
+[System.Guid]::NewGuid().ToString("N").replace("-","")
+```
+
+
 Paste the value in and you're set.
 
-> **NOTE:** You will have to manually check for updates to the bouncer plugin, and manually update the traefik config file. At least for now.
+> **NOTE:** At least for the time being, you will have to manually check for updates to the bouncer plugin, and manually update the traefik config file.
 
 
 ## Updating Crowdsec With Cron

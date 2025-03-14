@@ -17,7 +17,7 @@ What you want is the key labelled `Global API Key`, circled in pink here:
 
 You can change this value at any point (and probably should every few months) but for now just click the View button. You will be prompted for your password, as this is sensitive information. Once you see the popup with the key, copy it and paste it into the `.env` file.
 
-The email address that goes with the key is the same address you use to log into your Cloudflare account. There is a second email address in this section called `ACME_EMAIL`. That does NOT have to match your Cloudflare account; it can be any valid email address. This is something Let's Encrypt uses to warn you about a certificate that's going to expire (which I've seen only once in however many years they've been issuing certs).
+The email address that goes with the key is the same address you use to log into your Cloudflare account. There is a second email address in this section called `ACME_EMAIL`. That does NOT have to match your Cloudflare account; it can be any valid email address. This is something Let's Encrypt uses to warn you about a certificate that's going to expire (which I've seen only once in however many years they've been issuing certs, and I believe they are discontinuing these soon if they haven't already).
 
 The rest of the config needed is already done for you.
 

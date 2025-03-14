@@ -23,14 +23,7 @@ You can leave the first three alone. Or change them. Whatever.
 * `DB_PASS` is the password for that user
 * `DB_ROOT_PASSWORD` is the password for the "root" user who has total permission over the database. You really only need this if something goes very, very wrong.
 
-As with step 3, you can type anything for these passwords, but it will be more secure if you generate a GUID. In Linux or Mac, use:
-```bash
-uuidgen
-```
-and on Windows / Powershell, you can use
-```powershell
-New-Guid
-```
+As with step 3, you can type anything for these passwords, but it will be more secure if you generate a GUID.
 
 
 ## Removing This Integration
