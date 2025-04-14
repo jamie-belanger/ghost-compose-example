@@ -57,6 +57,9 @@ log:
 accessLog:
   filePath: /logs/access.log
   bufferingSize: 100
+  fields:
+    headers:
+      defaultMode: keep
 
 experimental:
   plugins:
