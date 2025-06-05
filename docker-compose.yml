@@ -86,6 +86,12 @@ services:
       - ./crowdsec/config:/etc/crowdsec
       # But we want to overwrite whatever is in there with our custom acquisition rules:
       - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+      # And a whitelist that allows Let's Encrypt challenges through:
+      - ./crowdsec/whitelists.yaml:/etc/crowdsec/whitelists.yaml
+      # Install a custom scenario for banning people who scan the .well-known folder
+      - ./crowdsec/scenarios/well-known-probing.yaml:/etc/crowdsec/scenarios/well-known-probing.yaml
+      # Overwrite default profiles to load custom scenario and increase default ban duration
+      - ./crowdsec/profiles.yaml:/etc/crowdsec/profiles.yaml
       # Finally we need read access to Traefik's logs
       - ./traefik/logs:/var/log/traefik/:ro
     labels:

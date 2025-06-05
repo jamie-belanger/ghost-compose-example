@@ -36,7 +36,7 @@ Look at the Crowdsec section of the environment file:
 ```ini
 ## Traefik plugin version (so you don't have to manually edit traefik-config.yml)
 ## Check https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
-# BOUNCER_VERSION="v1.4.1"
+# BOUNCER_VERSION="v1.4.2"
 
 ## Bouncer key for Traefik's local API
 ## Generate something like a GUID for this. It's used internally by Traefik

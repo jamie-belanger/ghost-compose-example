@@ -1,0 +1,21 @@
+name: custom/well-known-probing
+description: "Aggressively bans IPs probing .well-known paths (except trusted ones)"
+type: leaky
+author: your-name
+filter: |
+  evt.Meta.log_type == 'http_access-log' &&
+  evt.Meta.http_status in ['404', '403', '400'] &&
+  Lower(evt.Meta.http_path) contains '.well-known' &&
+  Lower(evt.Meta.http_user_agent) not contains 'letsencrypt' &&
+  evt.Meta.source_ip not in ['64.78.149.164', '66.133.109.36', '64.78.149.165', '66.133.109.39']
+groupby: evt.Meta.source_ip
+capacity: 3
+leakspeed: 10m
+blackhole: 5m
+labels:
+  type: http_probe
+  remediation: true
+  classification:
+    - reconnaissance
+  behavior: probing
+

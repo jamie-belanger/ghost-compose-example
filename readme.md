@@ -6,7 +6,7 @@ Docker compose for easily spinning up a copy of the Ghost blog using:
 | Traefik | v3.x | Reverse proxy | [Project Site](https://traefik.io/) <br> [Docker Hub](https://hub.docker.com/_/traefik) |
 | Tecnativa | latest | Socket proxy (for host security) | [Project Site](https://github.com/Tecnativa/docker-socket-proxy) <br> [Docker Hub](https://hub.docker.com/r/tecnativa/docker-socket-proxy) |
 | Crowdsec | latest | Agent for bouncing bad traffic based on community reputation | [Project Site](https://www.crowdsec.net/) <br> [Docker Hub](https://hub.docker.com/r/crowdsecurity/crowdsec) |
-| Crowdsec Traefik<br>Bouncer Plugin | v1.4.1 | Plugin that is responsible for bouncing bad traffic | [Github](https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin) |
+| Crowdsec Traefik<br>Bouncer Plugin | v1.4.2 | Plugin that is responsible for bouncing bad traffic | [Github](https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin) |
 | MySQL | v9.x | Database server | [Project Site](https://www.mysql.com/) <br> [Docker Hub](https://hub.docker.com/_/mysql) |
 | Ghost | v5.x | Blogging platform / CMS | [Project Site](https://ghost.org/) <br> [Docker Hub](https://hub.docker.com/_/ghost) |
 
@@ -22,7 +22,7 @@ You can either replace all image versions with `latest` tags, or keep an eye on 
 
 
 # Installation
-See the docs folder.
+See the docs folder, starting with [Installation, Part 1](./docs/install-01.md)
 
 
 # Updating
