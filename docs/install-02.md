@@ -22,58 +22,7 @@ The email address that goes with the key is the same address you use to log into
 The rest of the config needed is already done for you.
 
 
-## Removing This Integration
-If you don't want this integration, there are several files you'll have to modify. Start by commenting out these lines in the compose file:
-```yaml
-    environment:
-      - CF_API_EMAIL=${CLOUDFLARE_API_EMAIL}
-      - CF_API_KEY=${CLOUDFLARE_API_KEY}
-```
-Then delete or comment out the variables in your `.env` file.
+## Removing or Replacing This Integration
+If you don't want this integration, there are several files you'll have to modify, either by replacing these areas with one for your provider, or by removing them.
 
-Both of the Traefik yaml config files have a section that looks like this:
-```yaml
-    # Cloudflare IPs that we trust to forward the actual end-user's IP info
-    ForwardedHeadersTrustedIPs:
-    - 173.245.48.0/20
-    - 103.21.244.0/22
-    - 103.22.200.0/22
-    - 103.31.4.0/22
-    - 141.101.64.0/18
-    - 108.162.192.0/18
-    - 190.93.240.0/20
-    - 188.114.96.0/20
-    - 197.234.240.0/22
-    - 198.41.128.0/17
-    - 162.158.0.0/15
-    - 104.16.0.0/12
-    - 172.64.0.0/13
-    - 131.0.72.0/22
-```
-which lists Cloudflare IP addresses that forward traffic as trusted.
-
-There are two other sections in `traefik-config.yml` that have Cloudflare specific config. The TLS cert resolver and the config that backs that:
-```yaml
-    http:
-      middlewares:
-        - my-crowdsec-bouncer-traefik-plugin@file
-      tls:
-        certResolver: cloudflare
-        domains:
-          - main: ${BLOG_DOMAIN}
-            sans:
-              - "*.${BLOG_DOMAIN}"
-# ...
-certificatesResolvers:
-  cloudflare:
-    acme:
-      email: ${ACME_EMAIL}
-      storage: /acme/acme.json
-      # comment this out once it works... and delete any certs you got
-      # caserver: https://acme-staging-v02.api.letsencrypt.org/directory
-      dnsChallenge:
-        provider: cloudflare
-        resolvers:
-          - "1.1.1.1:53"
-          - "1.0.0.1:53"
-```
+I've marked each piece of the integration with a comment, so just search for `Cloudflare` to find them all. Alternative DNS challenge providers are listed in the Traefik documentation, [here](https://doc.traefik.io/traefik/https/acme/#providers).

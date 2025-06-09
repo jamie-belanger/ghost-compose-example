@@ -1,0 +1,11 @@
+whitelists:
+  - name: letsencrypt
+    reason: "Allow Let's Encrypt validation requests"
+    ip:
+      - 64.78.149.164
+      - 66.133.109.36
+      - 64.78.149.165
+      - 66.133.109.39
+    user_agent_regexp:
+      - ".*letsencrypt.*"
+
