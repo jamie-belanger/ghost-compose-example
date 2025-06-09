@@ -31,31 +31,83 @@ services:
     container_name: traefik
     restart: unless-stopped
     environment:
+      # Cloudflare config
       - CF_API_EMAIL=${CLOUDFLARE_API_EMAIL}
       - CF_API_KEY=${CLOUDFLARE_API_KEY}
+
+      # Crowdsec config
       - BOUNCER_KEY_TRAEFIK=${BOUNCER_KEY_TRAEFIK}
-      # So, for some reason, you can use env vars inside the dynamic config file
-      # traefik-sites.yml, but you can't use them in the standard config. /shrug
-      - TRAEFIK_ENTRYPOINTS_WEBSECURE_HTTP_TLS_DOMAINS_0_MAIN=${BLOG_DOMAIN}
-      - TRAEFIK_ENTRYPOINTS_WEBSECURE_HTTP_TLS_DOMAINS_0_SANS="*.${BLOG_DOMAIN}"
-      - TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_EMAIL=${ACME_EMAIL}
+
+    command:
+      - "--log"
+      - "--log.filePath=/logs/traefik.log"
+      - "--accessLog.filePath=/logs/access.log"
+      - "--accessLog.bufferingSize=100"
+      - "--accessLog.fields.headers.defaultMode=keep"
+
+      # Debug logging can be useful if you're having issues
+      #- "--log.level=DEBUG"
+
+      # In case you want to expose the dashboard:
+      #- "--api.dashboard=true"
+      #- "--api.debug=true"
+
+      - "--providers.docker"
+      - "--providers.docker.endpoint=tcp://socket_proxy:2375"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.filename=/etc/traefik/traefik-sites.yml"
+      - "--providers.file.watch=true"
+      - "--providers.providersThrottleDuration=10"
+
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+
+      # Cloudflare: trusted IPs for forwarding user's IP address via headers
+      - "--entrypoints.websecure.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/12,172.64.0.0/13,131.0.72.0/22"
+
+      # Cloudflare - Let's Encrypt DNS challenge
+      - "--entrypoints.websecure.http.tls.certresolver=cloudflare"
+      - "--entrypoints.websecure.http.tls.domains[0].main=${BLOG_DOMAIN}"
+      - "--entrypoints.websecure.http.tls.domains[0].sans=*.${BLOG_DOMAIN}"
+      - "--certificatesresolvers.cloudflare.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.cloudflare.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.delaybeforecheck=300"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
+
+      # Staging server -- uncomment next line for testing
+      #- "--certificatesresolvers.cloudflare.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+
+      # Crowdsec integration
+      - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+      - "--experimental.plugins.crowdsec-bouncer.version=${BOUNCER_VERSION}"
     ports:
       - 80:80
       - 443:443
       # Uncomment this if you want to expose it to the world, which I don't recommend.
       # But while testing, the Traefik dashboard can be useful
-      # - 8080:8080
+      #- 8080:8080
     volumes:
-      # Local files, for config
-      - ./traefik/traefik-config.yml:/etc/traefik/traefik.yml:ro
+      # Local file provider for config
       - ./traefik/traefik-sites.yml:/etc/traefik/traefik-sites.yml:ro
       # SSL cert storage
       - ./traefik/certs:/acme
       # And an external place to write logs
       - ./traefik/logs:/logs
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.middlewares=my-crowdsec-bouncer-traefik-plugin@file"
+      # Uncomment these if you want to expose the Traefik dashboard
+      #- traefik.enable=true
+      #- traefik.http.routers.api.rule=Host(`traefik.${BLOG_DOMAIN}`)
+      #- traefik.http.routers.api.service=api@internal
+      #- traefik.http.routers.api.entrypoints=websecure
+      #- traefik.http.routers.api.tls=true
+
+      # Crowdsec: Middleware configuration for bouncer
+      - traefik.http.middlewares.bouncer.plugin.crowdsec-bouncer.crowdseclapikey=${BOUNCER_KEY_TRAEFIK}
     networks:
       - ghost_platform
       - socket_proxy

@@ -1,16 +1,15 @@
 # Dynamic / site config for Traefik
 http:
   middlewares:
-    my-crowdsec-bouncer-traefik-plugin:
+    bouncer:
       plugin:
-        crowdsec-bouncer-traefik-plugin:
+        crowdsec-bouncer:
           Enabled: "true"
           # Debug logging can be useful if something isn't working
           # logLevel: DEBUG
           CrowdsecMode: stream
 
           CrowdsecLapiHost: "crowdsec:8080"
-          CrowdsecLapiKey: '{{ env "BOUNCER_KEY_TRAEFIK" }}'
           crowdsecLapiScheme: http
 
           # Cloudflare IPs that we trust to forward the actual end-user's IP info

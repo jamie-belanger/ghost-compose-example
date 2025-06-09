@@ -36,7 +36,7 @@ Look at the Crowdsec section of the environment file:
 ```ini
 ## Traefik plugin version (so you don't have to manually edit traefik-config.yml)
 ## Check https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
-# BOUNCER_VERSION="v1.4.2"
+BOUNCER_VERSION="v1.4.2"
 
 ## Bouncer key for Traefik's local API
 ## Generate something like a GUID for this. It's used internally by Traefik
@@ -81,3 +81,5 @@ This will run the command at midnight every day. I'm not sure how often this sho
 
 ## Removing This Integration
 The two Traefik config files handle the entirety of this integration. You can comment or delete any sections that have the word `crowdsec` in them.
+
+All integration points should be marked with a `Crowdsec` related comment.
