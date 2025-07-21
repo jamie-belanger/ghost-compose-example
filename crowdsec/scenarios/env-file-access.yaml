@@ -1,0 +1,18 @@
+name: custom/env-file-access
+description: "Very aggressively bans IPs trying to scrape .env files. This is never allowable."
+type: leaky
+author: jamie-alan-belanger
+filter: |
+  evt.Meta.log_type == 'http_access-log' &&
+  Lower(evt.Parsed.uri) matches '.*\\.env(\\.bak|\\.old|\\.backup|~|\\.txt)?$'
+groupby: evt.Parsed.remote_ip
+capacity: 1
+leakspeed: 168h  # One token every 7 days, effectively "once per week"
+blackhole: 1m
+labels:
+  type: exploit_attempt
+  remediation: true
+  classification:
+    - malicious-activity
+  behavior: scan
+
