@@ -7,6 +7,16 @@ decisions:
     duration: 48h
 on_success: break
 ---
+# Profile for banning anyone trying to access a .env file remotely. This is *never* legit.
+name: long_ban_for_env_attack
+filters:
+  - 'Alert.Remediation == true && Alert.GetScenario() == "custom/env-file-access"'
+decisions:
+  - type: ban
+    duration: 168h  # 7 days
+on_success: break
+
+---
 # Default profile (unchanged)
 name: default_ip_remediation
 #debug: true
