@@ -4,7 +4,7 @@ type: leaky
 author: jamie-alan-belanger
 filter: |
   evt.Meta.log_type == 'http_access-log' &&
-  Lower(evt.Parsed.uri) matches '.*\\.env(\\.bak|\\.old|\\.backup|~|\\.txt)?$'
+  Lower(evt.Meta.http_path) matches '.*\\.env(\\.bak|\\.old|\\.backup|~|\\.txt)?$'
 groupby: evt.Parsed.remote_ip
 capacity: 1
 leakspeed: 168h  # One token every 7 days, effectively "once per week"

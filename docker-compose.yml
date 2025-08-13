@@ -41,7 +41,9 @@ services:
     command:
       - "--log"
       - "--log.filePath=/logs/traefik.log"
+      - "--log.format=json"
       - "--accessLog.filePath=/logs/access.log"
+      - "--accessLog.format=json"
       - "--accessLog.bufferingSize=100"
       - "--accessLog.fields.headers.defaultMode=keep"
 
